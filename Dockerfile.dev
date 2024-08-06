@@ -1,0 +1,16 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl
+
+# Copy package.json and package-lock.json to the working directory
+COPY package.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code to the working directory
+COPY . .
+
+RUN npx prisma generate
