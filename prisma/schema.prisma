@@ -23,12 +23,33 @@ model User {
   sessions      Session[]
 
   oauthAccount authProviders[]
+  preferences  userPreferences[]
+  userScore    userScore[]
+}
+
+model userPreferences {
+  id                  String   @id @default(uuid())
+  userId              String
+  djinniSessionCookie String
+  douSessionCookie    String
+  createdAt           DateTime @default(now())
+
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model userScore {
+  id          String @id @default(uuid())
+  userId      String
+  score       Int
+  searchValue String
+
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 model authProviders {
-  id         String @id @default(uuid())
-  userId     String
-  provider   String
+  id       String @id @default(uuid())
+  userId   String
+  provider String
 
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }

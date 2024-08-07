@@ -4,5 +4,4 @@
 	let { children } = $props();
 </script>
 
-<ThemeSwitcher />
 {@render children()}

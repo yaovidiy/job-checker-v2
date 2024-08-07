@@ -1,14 +1,16 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	const {
+	let {
 		onSwap,
 		offSwap,
+		isOn = $bindable(false),
 		type,
 		classes
 	}: {
 		onSwap?: Snippet;
 		offSwap?: Snippet;
+		isOn?: boolean;
 		type: 'flip' | 'rotate';
 		classes?: string;
 	} = $props();
@@ -20,7 +22,7 @@
 </script>
 
 <label class="swap {swapTypes[type]} {classes ?? ''}">
-	<input type="checkbox" />
+	<input type="checkbox" bind:checked={isOn} />
 
 	<div class="swap-on">
 		{#if onSwap}

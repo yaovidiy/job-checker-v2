@@ -18,6 +18,8 @@
 	import Select from '$lib/components/ui/Select/Select.svelte';
 	import Modal from '$lib/components/Modal/Modal.svelte';
 	import Swap from '$lib/components/ui/Swap/Swap.svelte';
+	import Drawer from '$lib/components/ui/Drawer/Drawer.svelte';
+	import { Menu, X } from 'lucide-svelte';
 
 	const { data } = $props();
 	let emailStatus = $state<string>('');
@@ -300,232 +302,20 @@
 
 	let isCheckedValue = $state<boolean>(false);
 	let selectedValue = $state<string>('');
+
+	let isDrawerOpen = $state<boolean>(false);
+
+	$inspect(isDrawerOpen);
 </script>
 
-<div>
-	<Swap type="flip" classes="text-9xl" />
-</div>
-
-<div>
-	<Modal closeOnClickOutside={true} />
-</div>
-
-<div>
-	Selected Value: {selectedValue}
-	<Select
-		type="primary"
-		size="lg"
-		selectLabel="Select an option"
-		options={[
-			{ value: 'Option 1', label: 'Option 1' },
-			{ value: 'Option 2', label: 'Option 2' },
-			{ value: 'Option 3', label: 'Option 3' }
-		]}
-		label="Select an option"
-		onSelect={(value) => (selectedValue = value)}
-	/>
-</div>
-
-<div>
-	<FileInput
-		type="primary"
-		size="lg"
-		label="Upload file"
-		onFileChage={(files) => console.log(files)}
-		isMultiple
-		acceptTypes="image/*"
-	/>
-</div>
-
-<div>
-	Is checked: {isCheckedValue}
-
-	<Toggle
-		type="primary"
-		size="lg"
-		isChecked={isCheckedValue}
-		label="Toggle me"
-		onChanged={(isChecked) => (isCheckedValue = isChecked)}
-	/>
-</div>
-
-<div>
-	selected checkboxes: {selectedCheckboxes.join(', ')}
-	<CheckboxGroup checkboxes={Checkboxes} onChecked={(value) => updateCheckboxes(value)} />
-</div>
-
-Seletected Radio Value: {selectedRadio}
-<RadioGroup
-	radios={radioButtons}
-	onValueChange={(value: string | number) => (selectedRadio = value)}
-/>
-
-{#if emailStatus}
-	<p>{emailStatus}</p>
-{/if}
-
-{#if data}
-	<h1>{data.username}</h1>
-{/if}
-<Range type="primary" size="lg" onValueChange={(number) => console.log(number)} />
-<br />
-<StarRating onUpdate={(score) => (currentRating = score)} />
-Current score: {currentRating}
-<br />
-<Button isOutlined isPending={isEmailPending} type="primary" onclick={sendDummyEmail}
-	>Send email</Button
->
-
-<fieldset class="flex flex-wrap gap-2 mb-10">
-	<legend>Base buttons</legend>
-	{#each buttonsArray as btn}
-		<Button
-			isPending={isButtonPending}
-			type={btn.type}
-			isOutlined={btn.isOutlined}
-			onclick={() => {
-				isButtonPending = true;
-
-				setTimeout(() => {
-					isButtonPending = false;
-				}, 5000);
-			}}
-		>
-			{btn.text}
-		</Button>
-	{/each}
-</fieldset>
-
-<fieldset>
-	<legend>Base input</legend>
-	<Input extraClasses="max-w-xs" value="" placeholder="Username" type="text" />
-</fieldset>
-
-<Dropdown>
-	<ul class="menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-		<li><a href="!#">Item 1</a></li>
-		<li><a href="!#">Item 2</a></li>
-	</ul>
-</Dropdown>
-
-<div class="mb-10 px-5">
-	<Accordion {accordionItems}></Accordion>
-</div>
-
-<Table {headers} data={columns} {footers} caption="This is a table!">
-	{#snippet bodyCell(cellValue)}
-		<td>
-			<div>
-				<div class="font-bold">Heading</div>
-				<div class="text-sm opacity-50">{cellValue}</div>
-			</div>
-		</td>
+{#snippet drawerTrigger()}
+	{#snippet off()}
+		<Menu />
 	{/snippet}
-</Table>
-
-<Alert alertType="error" alertText="Something whent wrong">
-	{#snippet content(alertText)}
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6 shrink-0 stroke-current"
-			fill="none"
-			viewBox="0 0 24 24"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-			/>
-		</svg>
-		<span>{alertText}</span>
+	{#snippet on()}
+		<X />
 	{/snippet}
-</Alert>
+	<Swap onSwap={on} offSwap={off} bind:isOn={isDrawerOpen} type="rotate" classes="text-4xl" />
+{/snippet}
 
-<Alert alertType="info" alertText="Just an info for you"></Alert>
-
-<Button type="primary" onclick={addDummyToast}>Add toast</Button>
-
-<ToastContainer />
-
-<Tooltip tooltip="Icon tooltip">
-	{#snippet trigger()}
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			fill="none"
-			viewBox="0 0 24 24"
-			class="h-6 w-6 shrink-0 stroke-current cursor-pointer"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-			></path>
-		</svg>
-	{/snippet}
-</Tooltip>
-
-<Article>
-	{#snippet article()}
-		<p>
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis eget dolor
-			ultricies aliquam. Nullam nec turpis eget dolor ultricies aliquam.
-		</p>
-		<p>
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis eget dolor
-			ultricies aliquam. Nullam nec turpis eget dolor ultricies aliquam.
-		</p>
-
-		<blockquote>
-			<p>
-				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis eget dolor
-				ultricies aliquam. Nullam nec turpis eget dolor ultricies aliquam.
-			</p>
-		</blockquote>
-		<h1>This is color!</h1>
-
-		<p>
-			<span class="text-primary">Primary</span>
-			<span class="text-secondary">Secondary</span>
-			<span class="text-error">Error</span>
-			<span class="text-success">Success</span>
-			<span class="text-warning">Warning</span>
-			<span class="text-info">Info</span>
-		</p>
-		<pre>
-		<code class="language-js text-left">
-			const a = ['1', '2', '3']
-			And this is a code block
-		</code>
-		
-	</pre>
-
-		<ol>
-			<li>Item 1</li>
-			<li>Item 2</li>
-			<li>Item 3</li>
-		</ol>
-
-		<figure>
-			<img
-				src="https://images.unsplash.com/photo-1556740758-90de374c12ad?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1000&q=80"
-				alt="unsplash"
-			/>
-
-			<figcaption>
-				Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece
-				of classical Latin literature from 45 BC, making it over 2000 years old.
-			</figcaption>
-		</figure>
-
-		<p>
-			Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam nec turpis eget dolor
-			ultricies aliquam. Nullam nec turpis eget dolor ultricies <a
-				href="/"
-				target="_blank"
-				rel="noopener noreferrer">aliquam.</a
-			>
-		</p>
-	{/snippet}
-</Article>
+<Drawer trigger={drawerTrigger} bind:isOpen={isDrawerOpen} />
