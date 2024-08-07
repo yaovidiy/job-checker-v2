@@ -1,7 +1,10 @@
 <script>
 	import '../app.css';
-	import ThemeSwitcher from '$lib/components/ThemeSwitcher/ThemeSwitcher.svelte';
+	import Header from '$lib/components/Header/Header.svelte';
 	let { children } = $props();
 </script>
 
-{@render children()}
+<Header />
+<main>
+	{@render children()}
+</main>
