@@ -12,7 +12,7 @@
 		onclick
 	}: {
 		children: Snippet;
-		type: 'primary' | 'secondary' | 'ghost' | 'error' | 'success' | 'warning' | 'info';
+		type: 'primary' | 'secondary' | 'ghost' | 'error' | 'success' | 'warning' | 'info' | 'accent';
 		isOutlined?: boolean;
 		isPending?: boolean;
 		isDisabled?: boolean;
@@ -27,7 +27,8 @@
 		error: 'btn-error',
 		success: 'btn-success',
 		warning: 'btn-warning',
-		info: 'btn-info'
+		info: 'btn-info',
+		accent: 'btn-accent'
 	};
 
 	let buttonClasses = `btn disabled:cursor-not-allowed text-base font-bold ${isOutlined ? 'btn-outline' : ''} ${buttonTypes[type]} min-h-[50px] md:max-w-[250px] w-full ${extraClasses ?? ''}`;

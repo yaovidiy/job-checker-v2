@@ -11,7 +11,7 @@ export default {
     daisyui,
   ],
   daisyui: {
-    themes: ["bumblebee", "night"],
+    themes: ["pastel", "forest"],
   },
 }
 

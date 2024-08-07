@@ -4,7 +4,7 @@
 	let isDark = $state(true);
 
 	function onSwitch() {
-		document.documentElement.dataset.theme = isDark ? 'bumblebee' : 'night';
+		document.documentElement.dataset.theme = isDark ? 'pastel' : 'forest';
 	}
 
 	onMount(() => {

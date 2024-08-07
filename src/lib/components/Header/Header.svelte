@@ -25,33 +25,36 @@
 {/snippet}
 
 {#snippet drawerContent()}
-	<ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+	<ul class="menu menu-lg bg-base-200 z-50 text-base-content min-h-full w-80 p-4">
 		<li><a href="/">lg item 1</a></li>
 		<li><a href="/">lg item 2</a></li>
 	</ul>
 {/snippet}
 
 <header class="navbar bg-base-200 w-screen">
-	<div class="navbar-start">
-		<span class="lg:hidden">
+	<div class="navbar-start items-center gap-2">
+		<span class="hidden items-center justify-center">
 			<Drawer trigger={drawerTrigger} content={drawerContent} bind:isOpen={isDrawerOpen} />
 		</span>
+		<a href="/" class="text-2xl font-bold"><span class="text-accent">Ch</span>ecker</a>
 	</div>
-	<div class="navbar-center hidden lg:flex">
+	<div class="navbar-center hidden">
 		<ul class="menu bg-base-200 lg:menu-horizontal rounded-box">
 			<li><a href="/">lg item 1</a></li>
 			<li><a href="/">lg item 2</a></li>
 		</ul>
 	</div>
 	<div class="navbar-end gap-2">
-		<ThemeSwitcher />
+		<span class="hidden lg:inline">
+			<ThemeSwitcher />
+		</span>
 
 		{#if !$page.data?.user}
-			<Button type="primary" isOutlined>Sign in</Button>
-			<Button type="primary">Sign up</Button>
+			<Button type="accent" isOutlined extraClasses="!w-auto">Sign in</Button>
+			<Button type="accent" extraClasses="!w-auto">Sign up</Button>
 		{:else}
 			<Dropdown>
-				<ul class="menu bg-base-200 w-56 p-0 [&_li>*]:rounded-none">
+				<ul class="menu z-50 bg-base-200 w-56 p-0 [&_li>*]:rounded-none">
 					<li><a href="/">Item 1</a></li>
 					<li><a href="/">Item 2</a></li>
 					<li><a href="/">Item 3</a></li>
