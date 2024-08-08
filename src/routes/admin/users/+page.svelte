@@ -9,11 +9,12 @@
 	import { capitalizeFirstLetter } from '$lib/utils/general';
 	import toastStore, { type Toast } from '$lib/stores/toasts.svelte';
 	import { randomId } from '$lib/utils/randomId';
+	import { onMount } from 'svelte';
 
 	let isBlocked = $state(false);
 	let role = $state<Role>(Role.USER);
 	let selectedUserName = $state<string | null>(null);
-	let userPromise = $state(fetchUsers());
+	let userPromise = $state<Promise<User[] | null>>(Promise.resolve(null));
 
 	async function updateUser() {
 		try {
@@ -55,7 +56,7 @@
 		}
 	}
 
-	async function fetchUsers() {
+	async function fetchUsers(): Promise<User[] | null> {
 		try {
 			const resp = await fetch('/api/admin/get-users');
 
@@ -68,8 +69,13 @@
 			return res;
 		} catch (error) {
 			console.error(error);
+			return null;
 		}
 	}
+
+	onMount(() => {
+		userPromise = fetchUsers();
+	});
 </script>
 
 {#await userPromise}

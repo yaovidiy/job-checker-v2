@@ -50,6 +50,7 @@
 		"jsdom": "^24.1.0",
 		"lucide-svelte": "^0.417.0",
 		"node-mailjet": "^6.0.5",
+		"puppeteer": "^23.0.2",
 		"stripe": "^15.12.0"
 	}
 }

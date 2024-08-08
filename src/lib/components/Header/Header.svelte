@@ -65,7 +65,7 @@
 	>
 {/snippet}
 
-<header class="navbar bg-base-200 w-screen">
+<header class="navbar px-5 bg-base-200 w-screen">
 	<div class="navbar-start items-center gap-2">
 		<span class="hidden items-center justify-center">
 			<Drawer trigger={drawerTrigger} content={drawerContent} bind:isOpen={isDrawerOpen} />
@@ -83,7 +83,7 @@
 			<ThemeSwitcher />
 		</span>
 
-		{#if !$page.data?.user}
+		{#if !$page.data?.username}
 			<Modal
 				trigger={modalSignInTrigger}
 				content={modalSignInContent}
@@ -100,9 +100,7 @@
 		{:else}
 			<Dropdown trigger={dropdownTrigger}>
 				<ul class="menu z-50 bg-base-200 w-56 p-0 [&_li>*]:rounded-none">
-					<li><a href="/">Item 1</a></li>
-					<li><a href="/">Item 2</a></li>
-					<li><a href="/">Item 3</a></li>
+					<li><a href="/logout">Log out</a></li>
 				</ul>
 			</Dropdown>
 		{/if}

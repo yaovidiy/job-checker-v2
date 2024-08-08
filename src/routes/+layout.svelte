@@ -6,7 +6,7 @@
 </script>
 
 <Header />
-<main>
+<main class="min-h-screen overflow-y-auto">
 	{@render children()}
 </main>
 <Footer />
