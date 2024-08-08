@@ -5,6 +5,9 @@
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher/ThemeSwitcher.svelte';
 	import Button from '$lib/components/ui/Button/Button.svelte';
 	import Dropdown from '$lib/components/ui/Dropdown/Dropdown.svelte';
+	import Modal from '$lib/components/Modal/Modal.svelte';
+	import Login from '$lib/components/Auth/Login.svelte';
+	import SignUp from '../Auth/SignUp.svelte';
 	import { page } from '$app/stores';
 
 	let isDrawerOpen = $state<boolean>(false);
@@ -31,6 +34,37 @@
 	</ul>
 {/snippet}
 
+{#snippet modalSignUpTrigger(modal: HTMLDialogElement | null)}
+	<Button type="accent" extraClasses="!w-auto" onclick={() => modal?.showModal()}>Sign up</Button>
+{/snippet}
+
+{#snippet modalSignInContent(modal: HTMLDialogElement | null)}
+	<Login />
+{/snippet}
+
+{#snippet modalEmptyFooter()}
+	<span class="hidden"></span>
+{/snippet}
+
+{#snippet modalEmptyHeader(modal: HTMLDialogElement | null)}
+	<Button
+		type="ghost"
+		onclick={() => modal?.close()}
+		extraClasses="absolute top-0 right-4 !w-[48px] !min-h-[40px] !p-0"><X size={24} /></Button
+	>
+	<span class="hidden"></span>
+{/snippet}
+
+{#snippet modalSignUpContent()}
+	<SignUp />
+{/snippet}
+
+{#snippet modalSignInTrigger(modal: HTMLDialogElement | null)}
+	<Button type="accent" onclick={() => modal?.showModal()} isOutlined extraClasses="!w-auto"
+		>Sign in</Button
+	>
+{/snippet}
+
 <header class="navbar bg-base-200 w-screen">
 	<div class="navbar-start items-center gap-2">
 		<span class="hidden items-center justify-center">
@@ -50,10 +84,21 @@
 		</span>
 
 		{#if !$page.data?.user}
-			<Button type="accent" isOutlined extraClasses="!w-auto">Sign in</Button>
-			<Button type="accent" extraClasses="!w-auto">Sign up</Button>
+			<Modal
+				trigger={modalSignInTrigger}
+				content={modalSignInContent}
+				footer={modalEmptyFooter}
+				header={modalEmptyHeader}
+			/>
+
+			<Modal
+				trigger={modalSignUpTrigger}
+				content={modalSignUpContent}
+				footer={modalEmptyFooter}
+				header={modalEmptyHeader}
+			/>
 		{:else}
-			<Dropdown>
+			<Dropdown trigger={dropdownTrigger}>
 				<ul class="menu z-50 bg-base-200 w-56 p-0 [&_li>*]:rounded-none">
 					<li><a href="/">Item 1</a></li>
 					<li><a href="/">Item 2</a></li>

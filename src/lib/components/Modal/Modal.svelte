@@ -10,8 +10,8 @@
 		closeOnClickOutside
 	}: {
 		trigger?: Snippet<[HTMLDialogElement | null]>;
-		header?: Snippet;
-		content?: Snippet;
+		header?: Snippet<[HTMLDialogElement | null]>;
+		content?: Snippet<[HTMLDialogElement | null]>;
 		footer?: Snippet<[HTMLDialogElement | null]>;
 		closeOnClickOutside?: boolean;
 	} = $props();
@@ -35,14 +35,14 @@
 	<div class="modal-box">
 		<div class="modal-header">
 			{#if header}
-				{@render header()}
+				{@render header(modal)}
 			{:else}
 				<h2 class="text-xl">New modal</h2>
 			{/if}
 		</div>
 		<div class="modal-content">
 			{#if content}
-				{@render content()}
+				{@render content(modal)}
 			{:else}
 				<p class="text-base">New modal base content</p>
 			{/if}
