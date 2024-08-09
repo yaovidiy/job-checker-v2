@@ -58,14 +58,18 @@ export async function PATCH(event: RequestEvent) {
   }
 
   const body: Omit<userScore, 'userId' | 'createdAt'> = await event.request.json();
+  const scoreData = {
+    score: body.score,
+    searchValue: body.searchValue,
+  }
 
   try {
     const score = await db.userScore.update({
       where: {
-        userId: event.locals.user.id
+        id: body.id
       },
       data: {
-        ...body
+        ...scoreData
       }
     });
 
@@ -81,10 +85,12 @@ export async function DELETE(event: RequestEvent) {
     return error(403, "Forbidden");
   }
 
+  const body: { id: string } = await event.request.json();
+
   try {
     const score = await db.userScore.delete({
       where: {
-        userId: event.locals.user.id
+        id: body.id
       }
     });
 
