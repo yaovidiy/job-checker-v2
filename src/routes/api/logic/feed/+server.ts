@@ -1,4 +1,4 @@
-import { json, error } from '@sveltejs/kit';
+import { json, error, type RequestEvent } from '@sveltejs/kit';
 import puppeteer, { type CookieParam } from 'puppeteer';
 import { type jobItem } from '$lib/types';
 import {  db } from '$lib/server/db/db';
@@ -23,7 +23,7 @@ export async function GET({ url, locals }: RequestEvent) {
   let SESSION_COOKIES_VALUE = '';
 
   if (preferenses) {
-    SESSION_COOKIES_VALUE = preferenses.sessionCookiesValue;
+    SESSION_COOKIES_VALUE = preferenses.djinniSessionCookie;
   }
 
   const pagination = url.searchParams.get('page') ?? 1;
