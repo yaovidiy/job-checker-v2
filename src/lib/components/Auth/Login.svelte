@@ -3,20 +3,21 @@
 	import Input from '$lib/components/ui/Input/Input.svelte';
 	import Button from '$lib/components/ui/Button/Button.svelte';
 
-	const {
+	let {
 		hasGoogleAuth,
 		hasGithubAuth,
+		loginError,
 		onEmailAuth,
 		onGoogleAuth,
 		onGithubAuth
 	}: {
 		hasGoogleAuth?: boolean;
 		hasGithubAuth?: boolean;
-		onEmailAuth?: () => void;
+		loginError?: string | null;
+		onEmailAuth?: (email: string, password: string) => void;
 		onGoogleAuth?: () => void;
 		onGithubAuth?: () => void;
 	} = $props();
-	let loginError = $state<string | null>(null);
 	let username = $state('');
 	let password = $state('');
 
@@ -73,7 +74,7 @@
 	<h3 class="text-xl font-bold text-center">Login</h3>
 	<Input
 		type="text"
-		value={username}
+		bind:value={username}
 		isError={loginError !== null}
 		errorMessage={loginError ?? ''}
 		icon={usernameSVG}
@@ -81,12 +82,12 @@
 	/>
 	<Input
 		type="password"
-		value={password}
+		bind:value={password}
 		isError={loginError !== null}
 		errorMessage={loginError ?? ''}
 		icon={passwordSvg}
 		placeholder="Password"
 	/>
 
-	<Button type="primary" onclick={() => (onEmailAuth && onEmailAuth()) || login()}>Login</Button>
+	<Button type="primary" onclick={() => (onEmailAuth && onEmailAuth(username, password)) || login()}>Login</Button>
 </div>

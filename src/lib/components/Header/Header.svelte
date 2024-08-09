@@ -10,7 +10,32 @@
 	import SignUp from '../Auth/SignUp.svelte';
 	import { page } from '$app/stores';
 
+	async function login(username: string, password: string, modal: HTMLDialogElement | null) {
+		const resp = await fetch('/api/auth/login', {
+			method: 'POST',
+			body: JSON.stringify({
+				username,
+				password
+			})
+		});
+
+		if (!resp.ok) {
+			const error = await resp.json();
+			loginError = error.message;
+
+			return;
+		}
+
+		const res = await resp.json();
+
+		if (res.success) {
+			modal?.close();
+			window.location.reload();
+		}
+	}
+
 	let isDrawerOpen = $state<boolean>(false);
+	let loginError = $state<string | null>(null);
 </script>
 
 {#snippet drawerTrigger()}
@@ -39,7 +64,7 @@
 {/snippet}
 
 {#snippet modalSignInContent(modal: HTMLDialogElement | null)}
-	<Login />
+	<Login {loginError} onEmailAuth={(username, password) => login(username, password, modal)} />
 {/snippet}
 
 {#snippet modalEmptyFooter()}

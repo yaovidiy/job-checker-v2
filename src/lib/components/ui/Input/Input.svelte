@@ -11,7 +11,7 @@
 		readonly,
 		placeholder,
 		type,
-		value,
+		value = $bindable(''),
 		label,
 		onInput,
 		onBlur
