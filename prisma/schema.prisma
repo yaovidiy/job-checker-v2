@@ -56,13 +56,13 @@ model authProviders {
 }
 
 model Feed {
-  id       String @id @default(uuid())
-  userId   String
-  feedUrl  String
-  feedPage Int    @default(1)
+  id        String     @id @default(uuid())
+  userId    String
+  feedUrl   String
+  feedPage  Int        @default(1)
   feedItems FeedItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
@@ -71,20 +71,20 @@ model FeedItem {
   id               String   @id @default(uuid())
   feedId           String
   title            String
-  link             String
-  companyName      String
-  shortDescription String
-  description      String
-  postDate         String
+  link             String   @unique
+  companyName      String?
+  shortDescription String?
+  description      String?
+  postDate         String?
   pubSalaryMin     Int?
   pubSalaryMax     Int?
   reviewCount      Int?
   appliesCount     Int?
   isApplied        Boolean?
-  location         String
-  typeOfJob        String
-  experience       String
-  englishLevel     String
+  location         String?
+  typeOfJob        String?
+  experience       String?
+  englishLevel     String?
 
   feed Feed @relation(references: [id], fields: [feedId], onDelete: Cascade)
 }
