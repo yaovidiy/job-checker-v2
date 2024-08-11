@@ -3,10 +3,12 @@
 	let {
 		alertText,
 		alertType,
+		extraClasses,
 		content
 	}: {
 		alertText: string;
 		alertType: 'success' | 'error' | 'warning' | 'info';
+		extraClasses?: string;
 		content?: Snippet<[string]>;
 	} = $props();
 	const alertClasses = {
@@ -17,7 +19,7 @@
 	};
 </script>
 
-<div role="alert" class={`alert ${alertClasses[alertType]}`}>
+<div role="alert" class={`alert ${alertClasses[alertType]} ${extraClasses}`}>
 	{#if content}
 		{@render content(alertText)}
 	{:else}

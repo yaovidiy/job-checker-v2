@@ -48,6 +48,7 @@
 		"@lucia-auth/adapter-prisma": "^4.0.1",
 		"@stripe/stripe-js": "^4.0.0",
 		"arctic": "^1.9.1",
+		"cheerio": "^1.0.0",
 		"jsdom": "^24.1.0",
 		"lucide-svelte": "^0.417.0",
 		"node-mailjet": "^6.0.5",

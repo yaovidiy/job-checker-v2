@@ -2,10 +2,8 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import Input from '$lib/components/ui/Input/Input.svelte';
 	import type { Feed } from '@prisma/client';
 	import Button from '$lib/components/ui/Button/Button.svelte';
-	import { slide } from 'svelte/transition';
 
 	let previousFeeds: Feed[] = $state([]);
 	let djinniQueryParams: string = $state('');
@@ -16,7 +14,7 @@
 		}
 
 		try {
-			const res = await fetch('/api/logic/feed');
+			const res = await fetch('/api/logic/feed/all');
 			const feeds = await res.json();
 			previousFeeds = feeds;
 		} catch (error) {
@@ -26,9 +24,15 @@
 </script>
 
 <section class="max-w-lg flex flex-col justify-center items-center mx-auto w-full px-5">
-	<h1 class="text-2xl text-center mb-10 font-bold">
+	<h1 class="text-2xl text-center mb-2 font-bold">
 		Explore your offers on <a href="https://djinni.co" target="_blank">Djinni.co</a>
 	</h1>
+	<p class="text-sm text-center font-medium mb-1">
+		Enter your search query below and click search to see the results.
+	</p>
+	<p class="text-sm text-center font-medium mb-10">
+		For now you can only search job offers from Djinni.co. In the future we will add more sources.
+	</p>
 	<label class="input input-bordered mb-5 flex items-center gap-2">
 		https://djinni.co/jobs/?
 		<input
@@ -40,11 +44,11 @@
 	</label>
 	{#if djinniQueryParams !== ''}
 		<Button
-			on:click={() => {
-				goto(`/feed?${djinniQueryParams}`);
+			onclick={() => {
+				goto(`/feed?link=${djinniQueryParams}`);
 			}}
 			type="primary"
-			extraClasses="mt-5 mx-auto"
+			extraClasses="my-5 mx-auto"
 		>
 			Search
 		</Button>

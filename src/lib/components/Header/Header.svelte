@@ -49,7 +49,7 @@
 {/snippet}
 
 {#snippet dropdownTrigger()}
-	<Button type="ghost">{$page.data?.user?.username ?? 'Profile'}</Button>
+	<Button type="ghost">{$page.data?.username ?? 'Profile'}</Button>
 {/snippet}
 
 {#snippet drawerContent()}
@@ -124,8 +124,9 @@
 			/>
 		{:else}
 			<Dropdown trigger={dropdownTrigger}>
-				<ul class="menu z-50 bg-base-200 w-56 p-0 [&_li>*]:rounded-none">
-					<li><a href="/logout">Log out</a></li>
+				<ul class="menu z-50 bg-base-200 min-w-20 p-0">
+					<li><a href="/settings" class="text-nowrap">User Preferences</a></li>
+					<li><a href="/logout" class="text-nowrap">Log out</a></li>
 				</ul>
 			</Dropdown>
 		{/if}

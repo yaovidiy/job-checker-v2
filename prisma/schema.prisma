@@ -85,6 +85,7 @@ model FeedItem {
   typeOfJob        String?
   experience       String?
   englishLevel     String?
+  score            Int?
 
   feed Feed @relation(references: [id], fields: [feedId], onDelete: Cascade)
 }
