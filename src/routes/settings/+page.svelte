@@ -52,6 +52,36 @@
 		}
 	}
 
+	async function savePreferences(preferences: userPreferences) {
+		try {
+			const resp = await fetch('/api/user/preferences', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ preferences })
+			});
+
+			if (!resp.ok) {
+				throw new Error(`Failed to save preferences with ${resp.status} code`);
+			}
+
+			toastStore.addToast({
+				id: randomId(16),
+				type: 'success',
+				message: 'Preferences saved successfully'
+			});
+			return await resp.json();
+		} catch (err) {
+			toastStore.addToast({
+				id: randomId(16),
+				type: 'error',
+				message: 'Failed to save preferences'
+			});
+			console.error(err);
+		}
+	}
+
 	async function saveScores(scores: userScore[]) {
 		try {
 			isSavingScores = true;
@@ -90,7 +120,7 @@
 {#await preferences}
 	<Loader size="lg" type="spinner" color="accent" />
 {:then data}
-	<Cookies values={data} />
+	<Cookies onsave={savePreferences} values={data} />
 {:catch err}
 	<Alert alertType="error" alertText={err.message ?? err} />
 {/await}

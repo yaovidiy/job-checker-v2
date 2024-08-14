@@ -55,7 +55,7 @@
 				<input type="number" class="grow" placeholder="Set score value" bind:value={score.score} />
 			</label>
 			<Button
-				extraClasses="max-w-3xl min-w-fit p-4 h-fit w-fit md:w-fit mx-auto"
+				extraClasses="max-w-3xl min-w-fit p-4 h-fit !w-fit md:w-fit mx-auto"
 				type="error"
 				onclick={() => (scores = scores.filter((_, index) => index !== i))}
 			>
@@ -69,7 +69,7 @@
       isPending={isSaving}
 			isDisabled={!isUpdated || totalScore > 100}
 			type="success"
-			extraClasses="max-w-3xl p-4 h-fit min-w-fit w-fit md:w-fit"><SaveAll /></Button
+			extraClasses="max-w-3xl p-4 h-fit min-w-fit !w-fit md:w-fit"><SaveAll /></Button
 		>
 		{#if totalScore < 100}
 			<Button
