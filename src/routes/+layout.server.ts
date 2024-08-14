@@ -14,9 +14,16 @@ export async function load(event) {
     }
   });
 
+  const userScores = await db.userScore.count({
+    where: {
+      userId: event.locals.user.id
+    }
+  });
+
 
   return {
     username: event.locals.user?.username,
-    userPreferences
+    userPreferences,
+    hasScores: userScores > 0
   }
 }

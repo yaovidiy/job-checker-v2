@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Loader from '$lib/components/ui/Loader/Loader.svelte';
 	import Card from '$lib/components/Feed/Card/Card.svelte';
 	import { Prisma } from '@prisma/client';
-	import { page } from '$app/stores';
 	import Alert from '$lib/components/ui/Alert/Alert.svelte';
 
 	type FeedWithItems = Prisma.FeedGetPayload<{
@@ -29,8 +27,33 @@
 </script>
 
 {#await feedDataPromise}
-	<Loader type="spinner" size="lg" color="primary" />
+	<div class="grid gap-5 px-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-10">
+		{#each Array(6) as _}
+			<div class="skeleton w-full min-h-32"></div>
+		{/each}
+	</div>
 {:then feedData}
+	{#if data.hasScores}
+		<div
+			class="flex flex-col lg:flex-row p-4 rounded-2xl bg-neutral text-neutral-content justify-center items-center max-w-fit mx-auto mb-10 gap-5"
+		>
+			<div class="flex gap-3 items-center">
+				<span class="block w-5 h-5 bg-error"></span>
+				-
+				<p class="text-base">Score less than 30</p>
+			</div>
+			<div class="flex gap-3 items-center">
+				<span class="block w-5 h-5 bg-warning"></span>
+				-
+				<p class="text-base">Score between 30 and 50</p>
+			</div>
+			<div class="flex gap-3 items-center">
+				<span class="block w-5 h-5 bg-success"></span>
+				-
+				<p class="text-base">Score more than 50</p>
+			</div>
+		</div>
+	{/if}
 	{#if !data.username}
 		<Alert
 			alertType="error"
@@ -39,8 +62,15 @@
 		/>
 	{/if}
 	{#if data.username && !data.userPreferences}
+		{#snippet warningContent()}
+			<h3 class="text-lg">
+				You need to set your <a href="/settings" class="link link-neutral">preferences</a> in order to
+				get more info from this dashboard
+			</h3>
+		{/snippet}
 		<Alert
 			alertType="warning"
+			content={warningContent}
 			alertText="You need to set your preferences in order to get more info from this dashboard"
 			extraClasses="mb-5 max-w-fit mx-auto"
 		/>

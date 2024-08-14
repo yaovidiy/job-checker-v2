@@ -35,7 +35,9 @@
 </script>
 
 {#await feedPromise}
-	<Loader type="spinner" size="lg" color="primary" />
+	<div class="w-screen flex justify-center items-center">
+		<Loader type="spinner" size="lg" color="primary" />
+	</div>
 {:then _}
 	<h1 class="text-success text-center text-4xl">
 		Feed have been create you will be redirected to the feed page in 2 seconds
