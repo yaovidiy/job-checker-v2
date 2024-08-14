@@ -61,7 +61,7 @@
 			<span class="w-1 h-1 rounded-full">|</span>
 		{/if}
 		{#if appliesCount && reviewCount}
-			<span class="font-bold">Only {((appliesCount / reviewCount) * 100).toFixed(2)}% applied</span>
+			<span class="font-bold">{((appliesCount / reviewCount) * 100).toFixed(2)}% applied</span>
 			<span class="w-1 h-1 rounded-full">|</span>
 		{/if}
 		<span>{location}</span>
