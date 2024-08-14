@@ -42,7 +42,7 @@ model userScore {
   id          String @id @default(uuid())
   userId      String
   score       Int
-  searchValue String
+  searchValue String @unique
 
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
