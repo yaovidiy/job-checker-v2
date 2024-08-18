@@ -87,9 +87,8 @@ export async function POST({ locals, request }: RequestEvent) {
       const englishEl = infoEl.find('span.text-nowrap:last-child');
       const companyEl = header.find('div:first-child > a');
       const titleLink = $(job).find('h3 > a.job-item__title-link');
-      const descriptionElement = $(job).find('div:last-child');
-      const shortDescEl = descriptionElement.find('.js-truncated-text');
-      const descEl = descriptionElement.find('.js-original-text');
+      const shortDescEl = $(job).find('.js-truncated-text');
+      const descEl = $(job).find('.js-original-text');
       const pubSalaryEl = $(job).find('.public-salary-item');
 
       const salaryText = pubSalaryEl?.text()?.trim();
