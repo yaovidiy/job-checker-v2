@@ -1,8 +1,14 @@
 import { json, error, type RequestEvent } from '@sveltejs/kit';
 import { db } from '$lib/server/db/db';
 import type { jobItem } from '$lib/types';
+import { Prisma } from '@prisma/client';
 import { sanitizeHTML } from '$lib/utils/sanitizeHtml';
 
+type Feed = Prisma.FeedGetPayload<{
+  include: {
+    feedItems: false;
+  };
+}>;
 
 export async function GET({ locals, url }: RequestEvent) {
   if (!locals.user) {
@@ -21,7 +27,11 @@ export async function GET({ locals, url }: RequestEvent) {
         id: feedId,
       },
       include: {
-        feedItems: true
+        feedItems: {
+          orderBy: {
+            postDate: 'desc'
+          }
+        }
       }
     });
 
@@ -45,18 +55,15 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
         userId: locals.user.id,
         feedUrl: body.url,
         feedPage: body.page ?? 1
-      },
-      include: {
-        feedItems: true
       }
     });
 
-    if (existingFeed && existingFeed.updatedAt) {
-      const twoDaysAgo = new Date();
-      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    if (existingFeed && existingFeed.updatedAt && !body.forceUpdate) {
+      const updateTimeOut = new Date();
+      updateTimeOut.setDate(updateTimeOut.getDate() - 1);
       const updatedAt = new Date(existingFeed.updatedAt);
 
-      if (updatedAt > twoDaysAgo) {
+      if (updatedAt > updateTimeOut) {
         return json({ feedId: existingFeed.id });
       }
     }
@@ -75,41 +82,86 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
 
     const fetchedFeedData: { jobsDataArray: jobItem[]; totalAmount: string } = await fetchedFeedResponse.json();
 
-    console.log(fetchedFeedData, 'fetchedFeedData');
-
     if (fetchedFeedData.jobsDataArray.length === 0) {
       return error(404, 'No jobs found');
     }
 
-    const feed = await db.feed.create({
-      data: {
-        feedUrl: body.url,
-        feedPage: body.page ?? 1,
-        userId: locals.user.id
-      }
+    let feed: Feed;
+
+    if (!existingFeed) {
+      feed = await db.feed.create({
+        data: {
+          feedUrl: body.url,
+          feedPage: body.page ?? 1,
+          userId: locals.user.id,
+          totalItemsAmount: parseInt(fetchedFeedData.totalAmount)
+        }
+      });
+    } else {
+      await db.feed.update({
+        where: {
+          id: existingFeed.id
+        },
+        data: {
+          totalItemsAmount: parseInt(fetchedFeedData.totalAmount)
+        }
+      });
+      feed = existingFeed;
+    }
+    const saveOrUpdateFeedItems = fetchedFeedData.jobsDataArray.map((job) => {
+      const postDate = new Date(job.generalInfo.postDate.split(' ')[1].split('.').reverse().join('-') + 'T' + job.generalInfo.postDate.split(' ')[0]);
+      postDate.setUTCHours(postDate.getUTCHours() + 3);
+      return db.feedItem.upsert({
+        where: {
+          link: job.generalInfo.link
+        },
+        create: {
+          feedId: feed.id,
+          title: job.generalInfo.title,
+          description: sanitizeHTML(job.generalInfo.description),
+          companyName: job.generalInfo.companyName,
+          postDate: postDate,
+          pubSalaryMin: parseInt(job.generalInfo.pubSalary?.min ?? '0'),
+          pubSalaryMax: parseInt(job.generalInfo.pubSalary?.max ?? '0'),
+          shortDescription: job.generalInfo.shortDescription,
+          reviewCount: parseInt(job.analitics.reviews ?? '0'),
+          appliesCount: parseInt(job.analitics.applies ?? '0'),
+          isApplied: job.analitics.isApplied,
+          link: job.generalInfo.link,
+          location: job.additionalInfo.location,
+          typeOfJob: job.additionalInfo.typeOfJob,
+          experience: job.additionalInfo.experience,
+          englishLevel: job.additionalInfo.english,
+          score: job.score
+        },
+        update: {
+          title: job.generalInfo.title,
+          description: sanitizeHTML(job.generalInfo.description),
+          companyName: job.generalInfo.companyName,
+          postDate: postDate,
+          pubSalaryMin: parseInt(job.generalInfo.pubSalary?.min ?? '0'),
+          pubSalaryMax: parseInt(job.generalInfo.pubSalary?.max ?? '0'),
+          shortDescription: job.generalInfo.shortDescription,
+          reviewCount: parseInt(job.analitics.reviews ?? '0'),
+          appliesCount: parseInt(job.analitics.applies ?? '0'),
+          isApplied: job.analitics.isApplied,
+          link: job.generalInfo.link,
+          location: job.additionalInfo.location,
+          typeOfJob: job.additionalInfo.typeOfJob,
+          experience: job.additionalInfo.experience,
+          englishLevel: job.additionalInfo.english,
+          score: job.score
+        }
+      });
     });
 
-    await db.feedItem.createMany({
-      data: fetchedFeedData.jobsDataArray.map((job) => ({
-        feedId: feed.id,
-        title: job.generalInfo.title,
-        description: sanitizeHTML(job.generalInfo.description),
-        companyName: job.generalInfo.companyName,
-        postDate: job.generalInfo.postDate,
-        pubSalaryMin: parseInt(job.generalInfo.pubSalary?.min ?? '0'),
-        pubSalaryMax: parseInt(job.generalInfo.pubSalary?.max ?? '0'),
-        shortDescription: job.generalInfo.shortDescription,
-        reviewCount: parseInt(job.analitics.reviews ?? '0'),
-        appliesCount: parseInt(job.analitics.applies ?? '0'),
-        isApplied: job.analitics.isApplied,
-        link: job.generalInfo.link,
-        location: job.additionalInfo.location,
-        typeOfJob: job.additionalInfo.typeOfJob,
-        experience: job.additionalInfo.experience,
-        englishLevel: job.additionalInfo.english,
-        score: job.score
-      }))
-    });
+    const savedOrUpdatedPromises = await Promise.allSettled(saveOrUpdateFeedItems);
+
+    const errors = savedOrUpdatedPromises.filter((promise) => promise.status === 'rejected');
+
+    if (errors.length > 0) {
+      return error(500, 'Internal server error');
+    }
 
     return json({ feedId: feed.id });
   } catch (err) {

@@ -3,22 +3,136 @@
 	import Card from '$lib/components/Feed/Card/Card.svelte';
 	import { Prisma } from '@prisma/client';
 	import Alert from '$lib/components/ui/Alert/Alert.svelte';
+	import Button from '$lib/components/ui/Button/Button.svelte';
+	import { ChevronsLeft, ChevronsRight, RefreshCw } from 'lucide-svelte';
+	import toastStore from '$lib/stores/toasts.svelte.js';
+	import { randomId } from '$lib/utils/randomId.js';
+	import { goto } from '$app/navigation';
 
 	type FeedWithItems = Prisma.FeedGetPayload<{
 		include: { feedItems: true };
 	}>;
 	let { data } = $props();
 	let feedDataPromise: Promise<FeedWithItems> | null = $state(null);
+	let feedUrl = $state('');
+	let feedPage = $state(1);
+	let refetching = $state(false);
+	let feedId = $state(data.feedId);
+	let totalItemsAmount = $state(0);
+	let amountOfPages = $derived.by(() => Math.ceil(totalItemsAmount / 15));
 
 	async function fetchFeedData(): Promise<FeedWithItems> {
-		const resp = await fetch(`/api/logic/feed?feedId=${data.feedId}`);
+		const resp = await fetch(`/api/logic/feed?feedId=${feedId}`);
 		if (!resp.ok) {
 			throw new Error(
 				`Failed to fetch feed data with error ${resp.statusText} and code ${resp.status}`
 			);
 		}
 
-		return await resp.json();
+		const res: FeedWithItems = await resp.json();
+
+		feedUrl = res.feedUrl;
+		feedPage = res.feedPage;
+		totalItemsAmount = res.totalItemsAmount ?? 0;
+
+		return res;
+	}
+
+	async function fetchNextPage() {
+		refetching = true;
+
+		if (amountOfPages > feedPage + 1) {
+			feedPage = feedPage + 1;
+			const resp = await fetch(`/api/logic/feed`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: feedUrl, page: feedPage })
+			});
+
+			const res: { feedId: string } = await resp.json();
+
+			feedId = res.feedId;
+			feedDataPromise = fetchFeedData();
+
+			goto(`/feed/${feedId}`);
+
+			refetching = false;
+			return;
+		}
+
+		toastStore.addToast({
+			type: 'info',
+			message: 'No more pages to load',
+			id: randomId(16)
+		});
+
+		refetching = false;
+	}
+
+	async function fetchPreviousPage() {
+		refetching = true;
+
+		if (feedPage - 1 > 0) {
+			feedPage = feedPage - 1;
+
+			const resp = await fetch(`/api/logic/feed`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: feedUrl, page: feedPage })
+			});
+
+			const res: { feedId: string } = await resp.json();
+
+			feedId = res.feedId;
+			feedDataPromise = fetchFeedData();
+
+			goto(`/feed/${feedId}`);
+
+			refetching = false;
+			return;
+		}
+
+		toastStore.addToast({
+			type: 'info',
+			message: 'No more pages to load',
+			id: randomId(16)
+		});
+
+		refetching = false;
+	}
+
+	async function refetchFeedData() {
+		try {
+			refetching = true;
+			const resp = await fetch(`/api/logic/feed`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: feedUrl, page: feedPage, forceUpdate: true })
+			});
+
+			if (!resp.ok) {
+				throw new Error(
+					`Failed to refetch feed data with error ${resp.statusText} and code ${resp.status}`
+				);
+			}
+
+			feedDataPromise = fetchFeedData();
+		} catch (error) {
+			console.error(error);
+			toastStore.addToast({
+				type: 'error',
+				message: 'Failed to refetch feed data',
+				id: randomId(16)
+			});
+		} finally {
+			refetching = false;
+		}
 	}
 
 	onMount(async () => {
@@ -76,10 +190,40 @@
 		/>
 	{/if}
 	{#if feedData && feedData.feedItems.length > 0}
+		<Button onclick={refetchFeedData} type="ghost" extraClasses="mb-5">
+			<RefreshCw class={refetching ? 'animate-spin' : ''} />
+			Refetch feed items
+		</Button>
+		{#if feedData.totalItemsAmount}
+			<h1 class="text-4xl text-center mb-5">
+				Found {totalItemsAmount} results on djinni.co
+			</h1>
+		{/if}
 		<div class="grid gap-5 px-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-10">
 			{#each feedData.feedItems as feed}
 				<Card {...feed} />
 			{/each}
+		</div>
+		<div class="flex justify-center items-center">
+			<div class="join">
+				<Button
+					isPending={refetching}
+					type="ghost"
+					onclick={fetchPreviousPage}
+					extraClasses="join-item btn !w-fit"
+				>
+					<ChevronsLeft />
+				</Button>
+				<button class="join-item btn">Page {feedPage}</button>
+				<Button
+					isPending={refetching}
+					type="ghost"
+					onclick={fetchNextPage}
+					extraClasses="join-item btn !w-fit"
+				>
+					<ChevronsRight />
+				</Button>
+			</div>
 		</div>
 	{:else}
 		<p class="text-center text-4xl">No feed data found</p>

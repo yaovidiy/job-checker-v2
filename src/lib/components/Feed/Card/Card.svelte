@@ -4,10 +4,8 @@
 	let {
 		title,
 		link,
-		feedId,
 		companyName,
 		shortDescription,
-		description,
 		postDate,
 		pubSalaryMin,
 		reviewCount,
@@ -49,7 +47,7 @@
 <div class="card card-compact py-5 {setBackGroundColor()} card-bordered w-full shadow-xl">
 	<div class="card-title px-4 flex justify-between items-center">
 		<a href={`https://djinni.co${link}`} target="_blank" class="text-lg link font-bold">{title}</a>
-		<p class="text-xs">{companyName}</p>
+		<p class="text-xs text-right">{companyName}</p>
 	</div>
 	<div class="text-sm px-4 opacity-70">
 		{#if reviewCount}
@@ -77,6 +75,10 @@
 		{#if pubSalaryMin}
 			<span class="w-1 h-1 rounded-full">|</span>
 			<span>${pubSalaryMin}</span>
+		{/if}
+		{#if postDate}
+			<span class="w-1 h-1 rounded-full">|</span>
+			<span>{new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(postDate))}</span>
 		{/if}
 	</div>
 	<div class="card-body">

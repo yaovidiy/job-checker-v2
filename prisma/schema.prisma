@@ -63,6 +63,7 @@ model Feed {
   feedItems FeedItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  totalItemsAmount Int?
 
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
@@ -75,7 +76,7 @@ model FeedItem {
   companyName      String?
   shortDescription String?
   description      String?
-  postDate         String?
+  postDate         DateTime?
   pubSalaryMin     Int?
   pubSalaryMax     Int?
   reviewCount      Int?

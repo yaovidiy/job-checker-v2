@@ -4,11 +4,13 @@
 	let {
 		tooltip,
 		isOpen,
+		extraClasses,
 		type,
 		trigger
 	}: {
 		tooltip: string;
 		isOpen?: boolean;
+		extraClasses?: string;
 		type?: 'error' | 'success' | 'warning' | 'info' | 'primary' | 'secondary' | 'accent';
 		trigger?: Snippet;
 	} = $props();
@@ -25,7 +27,7 @@
 </script>
 
 <div
-	class={`tooltip ${type ? tooltipClasses[type] : ''} ${isOpen ? 'tooltip-open' : ''}`}
+	class={`tooltip ${type ? tooltipClasses[type] : ''} ${isOpen ? 'tooltip-open' : ''} ${extraClasses}`}
 	data-tip={tooltip}
 >
 	{#if trigger}

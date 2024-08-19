@@ -2,10 +2,14 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import type { Feed } from '@prisma/client';
+	import type { Prisma } from '@prisma/client';
 	import Button from '$lib/components/ui/Button/Button.svelte';
+	import Tooltip from '$lib/components/ui/Tooltip/Tooltip.svelte';
 
-	let previousFeeds: Feed[] = $state([]);
+	type Feed = Prisma.FeedGetPayload<{
+		include: { feedItems: false };
+	}>;
+	let previousFeeds: Record<string, Feed[]> = $state({});
 	let djinniQueryParams: string = $state('');
 
 	onMount(async () => {
@@ -17,6 +21,8 @@
 			const res = await fetch('/api/logic/feed/all');
 			const feeds = await res.json();
 			previousFeeds = feeds;
+
+			console.log(feeds);
 		} catch (error) {
 			console.error(error);
 		}
@@ -54,14 +60,36 @@
 		</Button>
 	{/if}
 	{#if $page.data?.username}
-		{#if !previousFeeds.length}
+		{#if !Object.keys(previousFeeds).length}
 			<p class="text-lg text-center font-medium">No previous feeds found</p>
 		{:else}
-			<p class="text-lg text-center font-medium">Click to see previous feed search</p>
+			<p class="text-lg text-center mb-3 font-medium">Click to see previous feed search</p>
 			<ul>
-				{#each previousFeeds as feed}
-					<li>
-						<a href="/feed/{feed.id}">{feed.feedUrl}</a>
+				{#each Object.keys(previousFeeds) as feed}
+					<li class="mb-5 relative">
+						<div role="button" tabindex="0" class="collapse bg-neutral text-neutral-content">
+							<input type="checkbox" />
+							<div class="collapse-title text-base font-medium">
+								{feed}
+							</div>
+							<div class="collapse-content">
+								<div class="flex flex-col">
+									{#each previousFeeds[feed] as item}
+										<a href={`feed/${item.id}`} class="link">
+											Page {item.feedPage}
+										</a>
+									{/each}
+								</div>
+							</div>
+						</div>
+						{#snippet PageToolTipTrigger()}
+							<div
+								class="badge w-5 h-5 rounded-full px-1 py-1 badge-primary text-primary-content badge-lg"
+							>
+								{previousFeeds[feed].length}
+							</div>
+						{/snippet}
+						<Tooltip trigger={PageToolTipTrigger} type="primary" tooltip="Amount of pages" extraClasses={`absolute -top-3 right-2`} />							
 					</li>
 				{/each}
 			</ul>
