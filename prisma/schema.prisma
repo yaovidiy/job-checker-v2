@@ -56,23 +56,33 @@ model authProviders {
 }
 
 model Feed {
-  id        String     @id @default(uuid())
-  userId    String
-  feedUrl   String
-  feedPage  Int        @default(1)
-  feedItems FeedItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id               String     @id @default(uuid())
+  userId           String
+  feedUrl          String
+  feedItems        FeedItem[]
+  feedPages        FeedPage[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
   totalItemsAmount Int?
 
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
+model FeedPage {
+  id        String   @id @default(uuid())
+  feedId    String   @unique
+  page      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  feed Feed @relation(references: [id], fields: [feedId], onDelete: Cascade)
+}
+
 model FeedItem {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   feedId           String
   title            String
-  link             String   @unique
+  link             String    @unique
   companyName      String?
   shortDescription String?
   description      String?
