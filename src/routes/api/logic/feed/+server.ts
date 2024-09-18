@@ -10,32 +10,115 @@ type Feed = Prisma.FeedGetPayload<{
   };
 }>;
 
-export async function GET({ locals, url }: RequestEvent) {
+type FeedResult = {
+  jobsDataArray: jobItem[];
+  totalAmount: string;
+}
+
+function addItemSource(item: jobItem, source: string): jobItem & { source: string } {
+  return { ...item.generalInfo, ...item.additionalInfo, ...item.analitics, ...{ scrore: item.score }, source };
+}
+
+export async function GET({ locals, url, fetch }: RequestEvent) {
   if (!locals.user) {
     return error(403, 'Forbidden');
   }
 
-  const feedId = url.searchParams.get('feedId');
-
-  if (!feedId) {
-    return error(400, 'Bad request');
-  }
-
   try {
-    const feeds = await db.feed.findFirst({
-      where: {
-        id: feedId,
+    const searchTerm = url.searchParams.get('search');
+
+    const djinniFeeds = await fetch('/api/logic/scrapper/djinni/feed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
       },
-      include: {
-        feedItems: {
-          orderBy: {
-            postDate: 'desc'
-          }
-        }
-      }
+      body: JSON.stringify({ search: searchTerm })
     });
 
-    return json(feeds);
+    const rabotaFeeds = await fetch('/api/logic/scrapper/rabota/feed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ search: searchTerm })
+    });
+
+    const workFeeds = await fetch('/api/logic/scrapper/work/feed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ search: searchTerm })
+    });
+
+    const douFeeds = await fetch('/api/logic/scrapper/dou/feed', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ search: searchTerm })
+    });
+
+    if (!djinniFeeds.ok && !rabotaFeeds.ok && !workFeeds.ok && !douFeeds.ok) {
+      throw new Error('Can\t fetch any feeds');
+    }
+
+    let djinniData: FeedResult = {
+      jobsDataArray: [],
+      totalAmount: '0'
+    };
+    let rabotaData: FeedResult = {
+      jobsDataArray: [],
+      totalAmount: '0'
+    };
+    let workData: FeedResult = {
+      jobsDataArray: [],
+      totalAmount: '0'
+    };
+    let douData: FeedResult = {
+      jobsDataArray: [],
+      totalAmount: '0'
+    };
+
+    if (djinniFeeds.ok) {
+      djinniData = await djinniFeeds.json();
+    }
+
+    if (rabotaFeeds.ok) {
+      rabotaData = await rabotaFeeds.json();
+    }
+
+    if (workFeeds.ok) {
+      workData = await workFeeds.json();
+    }
+
+    if (douFeeds.ok) {
+      douData = await douFeeds.json();
+    }
+
+    const feeds = [...djinniData.jobsDataArray.map((item) => addItemSource(item, 'djinni')), ...rabotaData.jobsDataArray.map((item) => addItemSource(item, 'rabota')), ...workData.jobsDataArray.map((item) => addItemSource(item, 'work')), ...douData.jobsDataArray.map((item) => addItemSource(item, 'dou'))];
+
+    const sortedFeeds = feeds.sort((a, b) => b.score - a.score);
+    const totalAmounts = [
+      {
+        source: 'djinni',
+        totalAmount: djinniData.totalAmount
+      },
+      {
+        source: 'rabota',
+        totalAmount: rabotaData.totalAmount
+      },
+      {
+        source: 'work',
+        totalAmount: workData.totalAmount
+      },
+      {
+        source: 'dou',
+        totalAmount: douData.totalAmount
+      }
+    ];
+
+    return json({ feeds: sortedFeeds, totalAmounts });
   } catch (err) {
     console.log(err);
     return error(500, 'Internal server error');
@@ -54,7 +137,6 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
       where: {
         userId: locals.user.id,
         feedUrl: body.url,
-        feedPage: body.page ?? 1
       }
     });
 
@@ -92,7 +174,6 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
       feed = await db.feed.create({
         data: {
           feedUrl: body.url,
-          feedPage: body.page ?? 1,
           userId: locals.user.id,
           totalItemsAmount: parseInt(fetchedFeedData.totalAmount)
         }
@@ -119,7 +200,6 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
           feedId: feed.id,
           title: job.generalInfo.title,
           description: sanitizeHTML(job.generalInfo.description),
-          companyName: job.generalInfo.companyName,
           postDate: postDate,
           pubSalaryMin: parseInt(job.generalInfo.pubSalary?.min ?? '0'),
           pubSalaryMax: parseInt(job.generalInfo.pubSalary?.max ?? '0'),
@@ -129,15 +209,12 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
           isApplied: job.analitics.isApplied,
           link: job.generalInfo.link,
           location: job.additionalInfo.location,
-          typeOfJob: job.additionalInfo.typeOfJob,
           experience: job.additionalInfo.experience,
-          englishLevel: job.additionalInfo.english,
           score: job.score
         },
         update: {
           title: job.generalInfo.title,
           description: sanitizeHTML(job.generalInfo.description),
-          companyName: job.generalInfo.companyName,
           postDate: postDate,
           pubSalaryMin: parseInt(job.generalInfo.pubSalary?.min ?? '0'),
           pubSalaryMax: parseInt(job.generalInfo.pubSalary?.max ?? '0'),
@@ -147,9 +224,7 @@ export async function POST({ locals, request, fetch }: RequestEvent) {
           isApplied: job.analitics.isApplied,
           link: job.generalInfo.link,
           location: job.additionalInfo.location,
-          typeOfJob: job.additionalInfo.typeOfJob,
           experience: job.additionalInfo.experience,
-          englishLevel: job.additionalInfo.english,
           score: job.score
         }
       });

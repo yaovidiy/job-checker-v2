@@ -53,6 +53,7 @@
 		"lucide-svelte": "^0.417.0",
 		"node-mailjet": "^6.0.5",
 		"puppeteer": "^23.0.2",
+		"rss-parser": "^3.13.0",
 		"stripe": "^15.12.0"
 	}
 }

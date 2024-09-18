@@ -15,8 +15,28 @@
 		typeOfJob,
 		experience,
 		englishLevel,
-		score
+		score,
+		source
 	}: FeedItem = $props();
+
+	function prepareLink(link) {
+		if (link.includes('https') || link.includes('http')) {
+			return link;
+		}
+
+		switch (source) {
+			case 'djinni':
+				return `https://djinni.co${link}`;
+			case 'work':
+				return `https://work.ua${link}`;
+			case 'rabota':
+				return `https://rabota.ua${link}`;
+			case 'dou':
+				return `https://jobs.dou.ua${link}`;
+			default:
+				return `https://${link}`;
+		}
+	}
 
 	function setBackGroundColor() {
 		const colors = {
@@ -46,10 +66,11 @@
 
 <div class="card card-compact py-5 {setBackGroundColor()} card-bordered w-full shadow-xl">
 	<div class="card-title px-4 flex justify-between items-center">
-		<a href={`https://djinni.co${link}`} target="_blank" class="text-lg link font-bold">{title}</a>
+		<a href={prepareLink(link)} target="_blank" class="text-lg link font-bold">{title}</a>
 		<p class="text-xs text-right">{companyName}</p>
 	</div>
 	<div class="text-sm px-4 opacity-70">
+		<p class="text-xl text-center" {source}></p>
 		{#if reviewCount}
 			<span>{reviewCount} reviews</span>
 			<span class="w-1 h-1 rounded-full">|</span>
@@ -76,10 +97,10 @@
 			<span class="w-1 h-1 rounded-full">|</span>
 			<span>${pubSalaryMin}</span>
 		{/if}
-		{#if postDate}
+		<!-- {#if postDate}
 			<span class="w-1 h-1 rounded-full">|</span>
 			<span>{new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(postDate))}</span>
-		{/if}
+		{/if} -->
 	</div>
 	<div class="card-body">
 		<p class="text-sm font-medium">{shortDescription}</p>

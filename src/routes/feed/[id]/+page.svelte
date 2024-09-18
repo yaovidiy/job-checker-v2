@@ -10,19 +10,19 @@
 	import { goto } from '$app/navigation';
 
 	type FeedWithItems = Prisma.FeedGetPayload<{
-		include: { feedItems: true };
+		include: { feedItems: true; feedPages: true };
 	}>;
 	let { data } = $props();
 	let feedDataPromise: Promise<FeedWithItems> | null = $state(null);
 	let feedUrl = $state('');
 	let feedPage = $state(1);
 	let refetching = $state(false);
-	let feedId = $state(data.feedId);
+	let search = $state(data.feedId);
 	let totalItemsAmount = $state(0);
 	let amountOfPages = $derived.by(() => Math.ceil(totalItemsAmount / 15));
 
 	async function fetchFeedData(): Promise<FeedWithItems> {
-		const resp = await fetch(`/api/logic/feed?feedId=${feedId}`);
+		const resp = await fetch(`/api/logic/feed?search=${search}`);
 		if (!resp.ok) {
 			throw new Error(
 				`Failed to fetch feed data with error ${resp.statusText} and code ${resp.status}`
@@ -32,108 +32,107 @@
 		const res: FeedWithItems = await resp.json();
 
 		feedUrl = res.feedUrl;
-		feedPage = res.feedPage;
 		totalItemsAmount = res.totalItemsAmount ?? 0;
 
 		return res;
 	}
 
-	async function fetchNextPage() {
-		refetching = true;
+	// async function fetchNextPage() {
+	// 	refetching = true;
 
-		if (amountOfPages > feedPage + 1) {
-			feedPage = feedPage + 1;
-			const resp = await fetch(`/api/logic/feed`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: feedUrl, page: feedPage })
-			});
+	// 	if (amountOfPages > feedPage + 1) {
+	// 		feedPage = feedPage + 1;
+	// 		const resp = await fetch(`/api/logic/feed`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json'
+	// 			},
+	// 			body: JSON.stringify({ url: feedUrl, page: feedPage })
+	// 		});
 
-			const res: { feedId: string } = await resp.json();
+	// 		const res: { feedId: string } = await resp.json();
 
-			feedId = res.feedId;
-			feedDataPromise = fetchFeedData();
+	// 		feedId = res.feedId;
+	// 		feedDataPromise = fetchFeedData();
 
-			goto(`/feed/${feedId}`);
+	// 		goto(`/feed/${feedId}`);
 
-			refetching = false;
-			return;
-		}
+	// 		refetching = false;
+	// 		return;
+	// 	}
 
-		toastStore.addToast({
-			type: 'info',
-			message: 'No more pages to load',
-			id: randomId(16)
-		});
+	// 	toastStore.addToast({
+	// 		type: 'info',
+	// 		message: 'No more pages to load',
+	// 		id: randomId(16)
+	// 	});
 
-		refetching = false;
-	}
+	// 	refetching = false;
+	// }
 
-	async function fetchPreviousPage() {
-		refetching = true;
+	// async function fetchPreviousPage() {
+	// 	refetching = true;
 
-		if (feedPage - 1 > 0) {
-			feedPage = feedPage - 1;
+	// 	if (feedPage - 1 > 0) {
+	// 		feedPage = feedPage - 1;
 
-			const resp = await fetch(`/api/logic/feed`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: feedUrl, page: feedPage })
-			});
+	// 		const resp = await fetch(`/api/logic/feed`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json'
+	// 			},
+	// 			body: JSON.stringify({ url: feedUrl, page: feedPage })
+	// 		});
 
-			const res: { feedId: string } = await resp.json();
+	// 		const res: { feedId: string } = await resp.json();
 
-			feedId = res.feedId;
-			feedDataPromise = fetchFeedData();
+	// 		feedId = res.feedId;
+	// 		feedDataPromise = fetchFeedData();
 
-			goto(`/feed/${feedId}`);
+	// 		goto(`/feed/${feedId}`);
 
-			refetching = false;
-			return;
-		}
+	// 		refetching = false;
+	// 		return;
+	// 	}
 
-		toastStore.addToast({
-			type: 'info',
-			message: 'No more pages to load',
-			id: randomId(16)
-		});
+	// 	toastStore.addToast({
+	// 		type: 'info',
+	// 		message: 'No more pages to load',
+	// 		id: randomId(16)
+	// 	});
 
-		refetching = false;
-	}
+	// 	refetching = false;
+	// }
 
-	async function refetchFeedData() {
-		try {
-			refetching = true;
-			const resp = await fetch(`/api/logic/feed`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: feedUrl, page: feedPage, forceUpdate: true })
-			});
+	// async function refetchFeedData() {
+	// 	try {
+	// 		refetching = true;
+	// 		const resp = await fetch(`/api/logic/feed`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json'
+	// 			},
+	// 			body: JSON.stringify({ url: feedUrl, page: feedPage, forceUpdate: true })
+	// 		});
 
-			if (!resp.ok) {
-				throw new Error(
-					`Failed to refetch feed data with error ${resp.statusText} and code ${resp.status}`
-				);
-			}
+	// 		if (!resp.ok) {
+	// 			throw new Error(
+	// 				`Failed to refetch feed data with error ${resp.statusText} and code ${resp.status}`
+	// 			);
+	// 		}
 
-			feedDataPromise = fetchFeedData();
-		} catch (error) {
-			console.error(error);
-			toastStore.addToast({
-				type: 'error',
-				message: 'Failed to refetch feed data',
-				id: randomId(16)
-			});
-		} finally {
-			refetching = false;
-		}
-	}
+	// 		feedDataPromise = fetchFeedData();
+	// 	} catch (error) {
+	// 		console.error(error);
+	// 		toastStore.addToast({
+	// 			type: 'error',
+	// 			message: 'Failed to refetch feed data',
+	// 			id: randomId(16)
+	// 		});
+	// 	} finally {
+	// 		refetching = false;
+	// 	}
+	// }
 
 	onMount(async () => {
 		feedDataPromise = fetchFeedData();
@@ -189,22 +188,24 @@
 			extraClasses="mb-5 max-w-fit mx-auto"
 		/>
 	{/if}
-	{#if feedData && feedData.feedItems.length > 0}
-		<Button onclick={refetchFeedData} type="ghost" extraClasses="mb-5">
+	{#if feedData && feedData.feeds.length > 0}
+		<!-- <Button onclick={refetchFeedData} type="ghost" extraClasses="mb-5">
 			<RefreshCw class={refetching ? 'animate-spin' : ''} />
 			Refetch feed items
-		</Button>
-		{#if feedData.totalItemsAmount}
-			<h1 class="text-4xl text-center mb-5">
-				Found {totalItemsAmount} results on djinni.co
-			</h1>
+		</Button> -->
+		{#if feedData.totalAmounts.length > 0}
+			{#each feedData.totalAmounts as totalAmount}
+				<h1 class="text-4xl text-center mb-5">
+					Found {totalAmount.totalAmount} results on {totalAmount.source}
+				</h1>
+			{/each}
 		{/if}
 		<div class="grid gap-5 px-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-10">
-			{#each feedData.feedItems as feed}
+			{#each feedData.feeds as feed}
 				<Card {...feed} />
 			{/each}
 		</div>
-		<div class="flex justify-center items-center">
+		<!-- <div class="flex justify-center items-center">
 			<div class="join">
 				<Button
 					isPending={refetching}
@@ -224,7 +225,7 @@
 					<ChevronsRight />
 				</Button>
 			</div>
-		</div>
+		</div> -->
 	{:else}
 		<p class="text-center text-4xl">No feed data found</p>
 	{/if}

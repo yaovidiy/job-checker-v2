@@ -51,7 +51,7 @@
 	{#if djinniQueryParams !== ''}
 		<Button
 			onclick={() => {
-				goto(`/feed?link=${djinniQueryParams}`);
+				goto(`/feed/${djinniQueryParams}`);
 			}}
 			type="primary"
 			extraClasses="my-5 mx-auto"

@@ -18,7 +18,7 @@ export async function POST({ locals, request }: RequestEvent) {
   const page = await browser.newPage();
   const body = await request.json();
 
-  if (!body.url) {
+  if (!body.search) {
     return error(400, 'Bad request');
   }
 
@@ -43,7 +43,7 @@ export async function POST({ locals, request }: RequestEvent) {
       SESSION_COOKIES_VALUE = preferenses.djinniSessionCookie;
     }
 
-    const pagination = body.page ?? 1;
+    // const pagination = body.page ?? 1;
     const cookie_sessionid: CookieParam = {
       name: 'sessionid',
       value: SESSION_COOKIES_VALUE,
@@ -56,39 +56,55 @@ export async function POST({ locals, request }: RequestEvent) {
     }
 
     await page.setCookie(cookie_sessionid);
-    await page.goto(`${body.url}&page=${pagination}`, {
+    await page.goto(`https://robota.ua/`, {
       waitUntil: 'networkidle2',
     });
 
-    await page.screenshot({ path: './static/screenshot.png', fullPage: true });
+    await page.screenshot({ path: './static/rabota/initialScreen.png', fullPage: true });
+
+    await page.type('santa-input > div > input', body.search, { delay: 100 });
+
+    await page.screenshot({ path: './static/rabota/searchFilled.png', fullPage: true });
+
+    await page.keyboard.press('Enter');
+
+    await page.waitForSelector('alliance-blured-vacancy');
+
+
+    const elem = await page.$('alliance-blured-vacancy');
+    const boundingBox = await elem?.boundingBox();
+
+    if (boundingBox) {
+      await page.mouse.move(
+        boundingBox.x + boundingBox.width / 2,
+        boundingBox.y + boundingBox.height / 2
+      );
+      await page.mouse.wheel({ deltaY: -100 });
+    }
+
+
+    await page.screenshot({ path: './static/rabota/searchResult.png', fullPage: true });
+
 
     const feedPage = await page.content();
 
     const $ = cheerio.load(feedPage);
 
 
-    const totalAmount = $('.page-content header div h1 .text-muted').text();
-    const jobsElements = $('main ul.list-jobs > li').toArray();
+    const totalAmount = $('div.santa-flex.santa-items-end.santa-justify-between.santa-space-x-20 div.santa-typo-h2.santa-mr-10')?.html()?.trim().split(' ')[0];
+    const jobsElements = $('alliance-jobseeker-desktop-vacancies-list > div > div > alliance-vacancy-card-desktop > a').toArray();
     const jobsDataArray: jobItem[] = [];
 
     jobsElements.forEach((job) => {
-      const header = $(job).find('div:first-child');
       const countsEl = $(job).find('div:first-child > div:last-child');
       const countsEls = countsEl.find('span');
-      const postDateEl = countsEls.eq(5);
       const reviewsEl = countsEls.eq(1);
       const appliesEl = countsEls.eq(3);
       const infoEl = $(job).find('div:nth-child(3)');
       const infoEls = infoEl.find('span.text-nowrap');
-      const locationEl = infoEls.eq(1);
       const appliedEl = infoEl.find('a.text-success');
-      const typeOfJobEl = infoEls.eq(0);
       const experienceEl = infoEls.eq(infoEls.length - 2);
       const englishEl = infoEl.find('span.text-nowrap:last-child');
-      const companyEl = header.find('div:first-child > a');
-      const titleLink = $(job).find('h3 > a.job-item__title-link');
-      const shortDescEl = $(job).find('.js-truncated-text');
-      const descEl = $(job).find('.js-original-text');
       const pubSalaryEl = $(job).find('.public-salary-item');
 
       const salaryText = pubSalaryEl?.text()?.trim();
@@ -97,13 +113,21 @@ export async function POST({ locals, request }: RequestEvent) {
       const minPubSalary = salary;
       const maxPubSalary = salary;
 
+      const mainBlock = $(job).find('a > div');
+      const content = mainBlock.eq(1);
+      const footer = mainBlock.eq(2);
+
+      const contentEls = content.find('div');
+      const desckEl = contentEls.eq(0);
+      const companyEl = contentEls.eq(1);
+
       const generalInfo = {
-        title: titleLink?.text().trim(),
-        link: titleLink?.attr('href') ?? '',
-        companyName: companyEl?.text().trim(),
-        shortDescription: shortDescEl.text() || 'No short description found',
-        description: descEl?.html() || 'No full description found',
-        postDate: postDateEl?.attr('data-original-title') || '',
+        title: $(job).find('h2')?.text().trim(),
+        link: $(job).attr('href') ?? '',
+        companyName: companyEl?.find('span')?.eq(0).text().trim() ?? 'No company name found',
+        shortDescription: desckEl.find('span')?.text() || 'No short description found',
+        description: desckEl.find('span')?.text() || 'No full description found',
+        postDate: footer.find('div')?.eq(1)?.text().trim() || 'No post date found',
         pubSalary: {
           min: minPubSalary,
           max: maxPubSalary,
@@ -121,8 +145,8 @@ export async function POST({ locals, request }: RequestEvent) {
       }
 
       const additionalInfo = {
-        location: $(locationEl).text().trim(),
-        typeOfJob: $(typeOfJobEl).text().trim(),
+        location: companyEl?.find('span')?.eq(1).text().trim() ?? 'No location found',
+        typeOfJob: $(job).find('alliance-vac-list-status-label > div')?.text().trim(),
         experience: exp ? exp[0] : 'Not found',
         english: $(englishEl).text(),
       }
@@ -145,7 +169,7 @@ export async function POST({ locals, request }: RequestEvent) {
   } catch (err) {
     console.log(err);
     await page.screenshot({ path: './static/error.png', fullPage: true });
-    // console.log('Screenshot saved', './static/error.png', `for page ${body.url}`);
+    // console.log('Screenshot saved', './static/error.png', `for page ${body.search}`);
     return error(500, 'Internal server error');
   } finally {
     await browser.close();

@@ -60,7 +60,6 @@ model Feed {
   userId           String
   feedUrl          String
   feedItems        FeedItem[]
-  feedPages        FeedPage[]
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
   totalItemsAmount Int?
@@ -68,14 +67,33 @@ model Feed {
   user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
-model FeedPage {
-  id        String   @id @default(uuid())
-  feedId    String   @unique
-  page      Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ItemSource {
+  id       String     @id @default(uuid())
+  name     String     @unique
+  FeedItem FeedItem[]
+}
 
-  feed Feed @relation(references: [id], fields: [feedId], onDelete: Cascade)
+model Company {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  logo        String?
+  website     String?
+  douLink     String?
+  sourceLink  String?
+  feedItems   FeedItem[]
+}
+
+model ItemJobType {
+  id       String     @id @default(uuid())
+  name     String     @unique
+  FeedItem FeedItem[]
+}
+
+model EnglishLevel {
+  id       String     @id @default(uuid())
+  name     String     @unique
+  FeedItem FeedItem[]
 }
 
 model FeedItem {
@@ -83,7 +101,10 @@ model FeedItem {
   feedId           String
   title            String
   link             String    @unique
-  companyName      String?
+  sourceId         String?
+  companyId        String?
+  jobTypeId        String?
+  englishLevelId   String?
   shortDescription String?
   description      String?
   postDate         DateTime?
@@ -93,12 +114,14 @@ model FeedItem {
   appliesCount     Int?
   isApplied        Boolean?
   location         String?
-  typeOfJob        String?
   experience       String?
-  englishLevel     String?
   score            Int?
 
-  feed Feed @relation(references: [id], fields: [feedId], onDelete: Cascade)
+  feed         Feed          @relation(references: [id], fields: [feedId], onDelete: Cascade)
+  source       ItemSource?   @relation(references: [id], fields: [sourceId], onDelete: SetNull)
+  company      Company?      @relation(references: [id], fields: [companyId], onDelete: SetNull)
+  jobType      ItemJobType?  @relation(references: [id], fields: [jobTypeId], onDelete: SetNull)
+  englishLevel EnglishLevel? @relation(references: [id], fields: [englishLevelId], onDelete: SetNull)
 }
 
 model Session {
